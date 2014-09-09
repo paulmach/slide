@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Slide to TIGER</title>
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.0/backbone-min.js"></script>
+
+    <script type='text/javascript' src='leaflet.plotter.js'></script>
+
+    <style>
+        .leaflet-div-icon, .leaflet-editing-icon {
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body style="">
+
+<script type="text/template" class="template" id="templateResults">
+    <hr />
+    <h4>Slide Complete</h4>
+
+    <table class="table table-hover table-condensed">
+        <tbody>
+            <tr>
+                <td>Points Created</td>
+                <td style="text-align: right"><%=num_points %></td>
+            </tr>
+            <tr>
+                <td>Loops Run</td>
+                <td style="text-align: right"><%=loops_completed %></td>
+            </tr>
+            <tr>
+                <td>Slide Runtime (ms)</td>
+                <td style="text-align: right"><%=(correction_duration/1e6).toFixed(1) %></td>
+            </tr>
+        </tbody>
+    </table>
+</script>
+
+<!-- Content -->
+<div style="width: 290px; padding: 0px 20px; float: left">
+    <div class="content">
+        <div class="section" style="padding-top: 0; font-size: small">
+            <h2>Slide to TIGER</h2>
+            <p>
+                This page provides a demo of sliding lines to match the 
+                <a href="https://www.census.gov/geo/maps-data/data/tiger.html">TIGER</a> dataset; public domain map data from the US Census.
+            </p>
+
+            <div class="form-group">
+                <div class="col-sm-16" style="text-align: right">
+                    <button id="id_button" type="submit" class="btn btn-success" style="width: 100%">Edit this location in iD</button>
+                </div>
+            </div>
+
+            <p>
+                To test slide parameters, begin by drawing a coarse polyline of the yellow TIGER data.
+                When done, click 'Slide' to watch it slide into place.
+            </p>
+
+            <br />
+            <form class="form-horizontal" role="form" style="font-size: 85%">
+                <div class="form-group">
+                    <label for="smoothing_sd" class="col-sm-7 control-label">Smoothing SD</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm" id="smoothing_sd" value="16.0" style="width: 75px">
+                    </div>
+                </div>      
+                <div class="form-group">
+                    <label for="gradient_scale" class="col-sm-7 control-label">Gradient Scale</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm" id="gradient_scale" value="0.5" style="width: 75px">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="distance_scale" class="col-sm-7 control-label">Distance Scale</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm" id="distance_scale" value="0.2" style="width: 75px">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="angle_scale" class="col-sm-7 control-label">Angle Scale</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm" id="angle_scale" value="0.1" style="width: 75px">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="momentum_scale" class="col-sm-7 control-label">Momentum</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm" id="momentum_scale" value="0.7" style="width: 75px">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-12" style="text-align: right">
+                        <button id="slide_button" type="submit" class="btn btn-danger disabled" style="width: 100%">Slide</button>
+                        <div style="text-align: left">
+                            <a href="#" id="clear_polyline_button">clear polyline</a> <span style="color: #AAA">(or right-click)</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div id="results"></div>
+                <div id="animation_controls" style="display: none">
+                <button id="animation_back_to_start" type="button" class="btn btn-default btn-sm" style="font-size: 18px; padding: 2px 10px;">↺</button>
+                <button id="animation_toggle" type="button" class="btn btn-default btn-sm" style="font-size: 18px; padding: 2px 10px; width: 40px">❙❙</button>
+                
+                <span id="animation_progress" style="margin-left: 10px"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="map" style="cursor: crosshair; background-color: black; height: 100%"></div>
+
+<script>
+
+var initial_zoom = 17, initial_lat = 38.88881, initial_lng = -121.19611;
+var animatePoly, animationStopped, frame, animationPaths, correctedPolyline;
+
+/***************************************************************/
+var RouterClass = Backbone.Router.extend({
+    routes: {
+        ':zoom/:lng/:lat': 'setCenter'
+    },
+    setCenter: function(zoom, lng, lat) {
+        initial_lng = lng;
+        initial_lat = lat;
+        initial_zoom = zoom;
+    }
+});
+
+var router = new RouterClass();
+Backbone.history.start({hashChange: true});
+
+/***************************************************************/
+// autoresize map div, required
+window.onresize = function() {
+    $('#map').height(window.innerHeight);
+};
+window.onresize();
+
+// init map
+var tileTemplate = "http://{s}.tiles.mapbox.com/v3/enf.y5c4ygb9,enf.ho20a3n1,enf.game1617/{z}/{x}/{y}.png";
+
+var map = L.map('map', {
+    center: [initial_lat, initial_lng],
+    zoom: parseInt(initial_zoom),
+    minZoom: 16,
+    maxZoom: 18,
+    layers: [L.tileLayer(tileTemplate)],
+    zoomControl: 'right',
+    tap: false,
+    inertia: false
+});
+
+idleEvent();
+map.on('moveend', idleEvent);
+
+/***************************************************************/
+$('#id_button').click(function() {
+    var baseurl = 'http://paulmach.github.io/iD';
+    window.open(baseurl + "#map=" + map.getZoom() + "/" + map.getCenter().lng + "/" + map.getCenter().lat);
+});
+
+/***************************************************************/
+// polyline events
+var polylineOptions = {weight: 5, color: '#F00', opacity: 1.0},
+    polyline = L.Polyline.Plotter([],polylineOptions).addTo(map);
+
+polyline.on('add-node remove-node', function() {
+    if (polyline.getLatLngs().length > 1) {
+        $('#slide_button').removeClass('disabled');
+    } else {
+        $('#slide_button').addClass('disabled');
+    }
+});
+
+// clear polyline event
+function clearPolyline() {
+  stopAnimation();
+
+  $('#results').html('');
+  $('#animation_controls').hide();
+
+  if (animatePoly) {
+    map.removeLayer(animatePoly);
+  }
+
+  polyline.clear();
+  $('#slide_button').addClass('disabled');
+
+  return false;
+}
+$('#clear_polyline_button').on('click', clearPolyline);
+map.on('contextmenu', clearPolyline);
+
+/***************************************************************/
+// restart animation
+$('#animation_back_to_start').on('click', function() {
+    frame = 0;
+    $('#animation_progress').text('');
+
+    if (animationStopped) {
+        setPath(frame);
+    }
+});
+
+// toggle start/stop
+$('#animation_toggle').on('click', function() {
+    animationStopped = !animationStopped;
+
+    if (!animationStopped) {
+        $('#animation_toggle').html('❙❙');
+        setPath(frame);
+    } else {
+        stopAnimation();
+    }
+});
+
+/***************************************************************/
+// SLIDE!!!!
+$('#slide_button').on('click', function() {
+    var button = $('#slide_button');
+    if (button.hasClass('disabled'))
+        return false;
+
+    button.blur();
+    button.html('Sliding....');
+    button.addClass('disabled');
+
+    $('#results').html('');
+    $('#animation_controls').hide();
+
+    if (correctedPolyline) {
+        map.removeLayer(correctedPolyline);
+    }
+
+    if (animatePoly) {
+        map.removeLayer(animatePoly);
+    }
+
+    var domain = 'http://slide.paulmach.com';
+    $.ajax({
+        url: '/slide',
+        dataType: 'json',
+        data: {
+            path: encodePolyline(polyline),
+            number_intermediate_paths: 2000,
+            smoothing_sd: $('#smoothing_sd').val(),
+            gradient_scale: $('#gradient_scale').val(),
+            distance_scale: $('#distance_scale').val(),
+            angle_scale: $('#angle_scale').val(),
+            momentum_scale: $('#momentum_scale').val()
+        }
+    }).done(function(data) {
+        console.log(data);
+
+        correctedPolyline = L.polyline(decodePoints(data.corrected_path), {
+            color: '#0F0',
+            opacity: 0.8,
+            weight: 4
+        }).addTo(map);
+
+        $('#results').html(_.template($('#templateResults').html(), data));
+
+        button.html('Slide');
+        button.removeClass('disabled');
+
+        // start the animation
+        startAnimation(data.intermediate_paths);
+    }).fail(function () {
+        $('#results').html('<div class="alert alert-danger">Server Error</div>');
+
+        button.html('Slide');
+        button.removeClass('disabled');
+    });
+
+    return false;
+   });
+
+function stopAnimation() {
+    $('#animation_toggle').html('►');
+    animationStopped = true;
+}
+
+function startAnimation(paths) {
+    stopAnimation();
+
+    // animate the slide
+    $('#animation_controls').show();
+    animatePoly = L.polyline([], {
+        color: '#F00',
+        opacity: 0.8,
+        weight: 4
+    }).addTo(map);
+
+    if (paths && paths.length) {
+        animationStopped = false;
+        animationPaths = paths;
+        $('#animation_toggle').html('❙❙');
+
+        setPath(0);
+    }
+}
+
+function setPath(i) {
+    frame = i;
+    animatePoly.setLatLngs(decodePoints(animationPaths[frame]));
+    if (!animationStopped && frame < animationPaths.length-1) {
+        $('#animation_progress').text('step ' + frame);
+        setTimeout(function () { setPath(frame+1); }, 20);
+    } else {
+        if (frame >= animationPaths.length-1) {
+            $('#animation_progress').text('');
+            frame = 0;
+        }
+
+        stopAnimation();
+    }
+}
+
+function idleEvent() {
+    var lat = map.getCenter().lat.toFixed(5),
+        lng = map.getCenter().lng.toFixed(5),
+        zoom = map.getZoom();
+
+    router.navigate(zoom+'/'+lng+'/'+lat, {trigger: false, replace: true});
+}
+
+/***************************************************************/
+// polyline encoding stuff
+function encodePolyline(polyline) {
+    var points = [], latlngs = polyline.getLatLngs();
+
+    for (var i = 0; i < latlngs.length; i++) {
+        var point = latlngs[i];
+        points.push([point.lat, point.lng]);
+    }
+
+    return polylineEncode(points);
+}
+
+function polylineEncode(points) {
+    var factor = 1.0e6, pLat = 0, pLng = 0, result = "";
+
+    for(var i = 0; i < points.length; i++) {
+        var p = points[i],
+            lat5 = Math.floor(p[0]*factor),
+            lng5 = Math.floor(p[1]*factor);
+
+        var deltaLat = lat5 - pLat,
+            deltaLng = lng5 - pLng;
+
+        pLat = lat5;
+        pLng = lng5;
+
+        result += encodeSignedNumber(deltaLat) + encodeSignedNumber(deltaLng);
+    }
+
+    return result;
+}
+
+function encodeNumber(num)  {
+    var nextValue, finalValue,
+        encodeString = "";
+
+    while (num >= 0x20) {
+        nextValue = (0x20 | (num & 0x1f)) + 63;
+        encodeString += (String.fromCharCode(nextValue));
+        num >>= 5;
+    }
+    finalValue = num + 63;
+    encodeString += (String.fromCharCode(finalValue));
+    
+    return encodeString;
+}
+
+function encodeSignedNumber(num) {
+    var sgn_num = num << 1;
+    if (num < 0) sgn_num = ~(sgn_num);
+
+    return encodeNumber(sgn_num);
+}
+
+function decodePoints(encoded) {
+    var multiplier = 1.0e6,
+        len = encoded.length,
+        index = 0, polypath = [], prev = 0, count = 0, tempLatLng = [0, 0];
+
+    while (index < len) {
+        var shift = 0, result = 0, b;
+
+        do {
+            b = encoded.charCodeAt(index) - 63;
+            index++;
+
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+        } while (b >= 0x20);
+
+        result = ((result & 1) ? ~(result >> 1) : (result >> 1));
+
+        if (count%2 === 0) {
+            result += tempLatLng[0];
+            tempLatLng[0] = result;
+        } else {
+            result += tempLatLng[1];
+            tempLatLng[1] = result;
+
+            polypath.push(L.latLng(tempLatLng[0]/multiplier, tempLatLng[1]/multiplier));
+        }
+
+        count++;
+    }
+
+    return polypath;
+}
+
+if (window.location.hostname != "localhost") {
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-253164-17', 'auto');
+    ga('send', 'pageview');
+}
+
+</script>
+
+</body>
+</html>
