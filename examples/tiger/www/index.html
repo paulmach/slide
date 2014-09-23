@@ -169,7 +169,9 @@ map.on('moveend', idleEvent);
 
 /***************************************************************/
 $('#id_button').click(function() {
-    var baseurl = 'http://paulmach.github.io/iD';
+    var baseurl = 'http://localhost:8100';
+    if (window.location.hostname != "localhost") baseurl = 'http://paulmach.github.io/iD';
+
     window.open(baseurl + "#map=" + map.getZoom() + "/" + map.getCenter().lng + "/" + map.getCenter().lat);
 });
 
@@ -250,7 +252,9 @@ $('#slide_button').on('click', function() {
         map.removeLayer(animatePoly);
     }
 
-    var domain = 'http://slide.paulmach.com';
+    var domain = 'http://localhost:8080';
+    if (window.location.hostname != "localhost") domain = 'http://slide.paulmach.com';
+
     $.ajax({
         url: '/slide',
         dataType: 'json',
