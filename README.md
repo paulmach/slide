@@ -6,12 +6,19 @@ The idea is to take a coarse approximation to the raster data and have the algor
 The result is a properly sampled vector polyline matching the contours of the raster data.
 
 The algorithm is presented as a Go (golang) library. The [examples](examples) directory has some example integrations.
-Most of the heavy geometry stuff is done with [go.geo](https://github.com/paulmach/go.geo), a go geo/geometry library.
+Most of the heavy geometry stuff is done with [go.geo](https://github.com/paulmach/go.geo), a go geography/geometry library.
 
-**Slide to TIGER data [Demo](http://paulmach.github.io/slide):**
+### Demos
+
 Slide supports the concept of [surfacers](surfacers) that can be based on any datasource.
-This demo uses the [Mapbox TIGER tile layer](https://www.mapbox.com/blog/openstreetmap-tiger/) 
-created by [Eric Fischer](https://github.com/ericfischer).
+
+* [Strava Global Heat](http://labs.strava.com/slide/demo.html) <br />
+	Uses the [Strava Global Heatmap](http://labs.strava.com/heatmap/)
+	to speed map tracing.
+
+* [TIGER map data](http://slide.paulmach.com/)<br />
+	Uses the [Mapbox TIGER tile layer](https://www.mapbox.com/blog/openstreetmap-tiger/) 
+	created by [Eric Fischer](https://github.com/ericfischer).
 
 Background
 ----------
