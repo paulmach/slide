@@ -101,9 +101,9 @@ func (s *Slide) refineWorker(payloads <-chan workerPayload, finish *sync.WaitGro
 	defer finish.Done()
 
 	for load := range payloads {
-		gradient := gradientContribution(s.Surfacer, load.Path.GetAt(load.Index), s.GradientScale)
-		distance := distanceContribution(load.Path, load.Index, s.DistanceScale)
-		angle := angleContribution(load.Path, load.Index, s.AngleScale)
+		gradient := s.GradientContributionFunc(s.Surfacer, load.Path.GetAt(load.Index), s.GradientScale)
+		distance := s.DistanceContributionFunc(load.Path, load.Index, s.DistanceScale)
+		angle := s.AngleContributionFunc(load.Path, load.Index, s.AngleScale)
 
 		// put them together
 		correction := geo.NewPoint(0, 0).Add(distance).Add(angle).Add(gradient)

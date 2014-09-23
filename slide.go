@@ -44,6 +44,12 @@ type Slide struct {
 	AngleScale    float64
 	MomentumScale float64
 
+	// set to the default internal values of gradientContribution, distanceContribution and angleContribution
+	// but if you want to get fancy, you can override them.
+	GradientContributionFunc func(surfacer Surfacer, point *geo.Point, scale float64) *geo.Point
+	DistanceContributionFunc func(path *geo.Path, index int, scale float64) *geo.Point
+	AngleContributionFunc    func(path *geo.Path, index int, scale float64) *geo.Point
+
 	// Reduce the correction for paths that are in the valley of the surface.
 	// The reduction is based on the original surface value.
 	// This option can be helpful when sliding to good data, such as rasterized vector geometry.
@@ -86,6 +92,10 @@ func New(geometry []*geo.Path, surfacer Surfacer) *Slide {
 		DistanceScale: suggested.DistanceScale,
 		AngleScale:    suggested.AngleScale,
 		MomentumScale: suggested.MomentumScale,
+
+		GradientContributionFunc: gradientContribution,
+		DistanceContributionFunc: distanceContribution,
+		AngleContributionFunc:    angleContribution,
 
 		DepthBasedReduction: suggested.DepthBasedReduction,
 	}
