@@ -1,15 +1,13 @@
 package utils
 
-import (
-	"github.com/paulmach/go.geo"
-)
+import "github.com/paulmach/go.geo"
 
 // TileRanges returns the ranges of tiles that enclose the given latlng bound.
 func TileRanges(lnglatBound *geo.Bound, maxTileDim uint64) (xTileMin, xTileMax, yTileMin, yTileMax, zoomLevel uint64) {
 
 	// this is as far in as we'll go down in detail. ie. no more detail.
 	// This seems to work well in practice.
-	zoomLevel = uint64(16)
+	zoomLevel = uint64(17)
 
 	sw := lnglatBound.SouthWest()
 	ne := lnglatBound.NorthEast()
