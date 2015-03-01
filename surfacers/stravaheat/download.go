@@ -1,19 +1,27 @@
-package tile_overlay
+package stravaheat
 
 import (
-	"image"
+	"encoding/json"
 	"sync"
 
 	"github.com/paulmach/slide/utils"
 )
 
-import _ "image/png" // to support tiles in these formats automatically
-import _ "image/jpeg"
-import _ "image/gif"
+// tileData mimics the data returned by the strava endpoint.
+type tileData struct {
+	X uint32 `json:"x"`
+	Y uint32 `json:"y"`
+	Z uint32 `json:"z"`
 
-func (surfacer *TileOverlaySurface) downloadTiles() error {
+	// Data is row-major heat values between [0, 1] for the given tile.
+	Data []float64 `json:"data"`
+}
+
+// downloadTiles downloads the strava heat data and puts it in the correct locations in the surface.
+// It starts up surfacer.DownloadGoroutines goroutines to download the data in parallel.
+func (surfacer *StravaHeatSurface) downloadTiles() error {
 	// for the tiles, 0,0 is northwest. For the surface, 0,0 is south west
-	verticalFlipOffset := uint64(surfacer.Surface.Height - 1)
+	verticalFlipOffset := uint64(surfacer.surface.Height - 1)
 
 	var fetchErr error
 	var wait sync.WaitGroup
@@ -33,13 +41,13 @@ func (surfacer *TileOverlaySurface) downloadTiles() error {
 					return
 				}
 
-				// fetch tile data
 				url := utils.BuildTileURL(surfacer.SourceURLTemplate, x, y, surfacer.level)
 				body, err := utils.FetchURL(url, surfacer.DownloadRetries)
 				if err == nil {
 					var k, l uint64
 
-					img, _, err := image.Decode(body)
+					data := &tileData{}
+					err = json.NewDecoder(body).Decode(&data)
 					body.Close()
 
 					if err != nil {
@@ -53,8 +61,9 @@ func (surfacer *TileOverlaySurface) downloadTiles() error {
 					for k = 0; k < 256; k++ {
 						offset := verticalFlipOffset - (yStart + k)
 						for l = 0; l < 256; l++ {
-							// while this does a matrix transpose, I did not get any speedup when trying to mess with this.
-							surfacer.Surface.Grid[xStart+l][offset] = surfacer.ColorValueFunc(img.At(int(l), int(k)), surfacer.targetColor)
+							// while this does a matrix transpose. I did not get any speedup when
+							// trying to mess with this.
+							surfacer.surface.Grid[xStart+l][offset] = data.Data[k*256+l]
 						}
 					}
 				} else {

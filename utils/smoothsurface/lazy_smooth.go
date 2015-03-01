@@ -1,4 +1,4 @@
-package smooth_surface
+package smoothsurface
 
 import (
 	"math"

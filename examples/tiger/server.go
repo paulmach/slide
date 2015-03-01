@@ -11,8 +11,10 @@ import (
 	"time"
 
 	"github.com/paulmach/go.geo"
+	"github.com/paulmach/reducer"
 	"github.com/paulmach/slide"
-	"github.com/paulmach/slide/surfacers/tile_overlay"
+	"github.com/paulmach/slide/reducers"
+	"github.com/paulmach/slide/surfacers/tileoverlay"
 )
 
 // some defaults
@@ -58,7 +60,7 @@ func slideHandler(w http.ResponseWriter, r *http.Request) {
 		smoothingSD, _ = strconv.ParseFloat(r.FormValue("smoothing_sd"), 64)
 	}
 
-	tigerSurfacer := tile_overlay.New(
+	tigerSurfacer := tileoverlay.New(
 		paths[0].Bound(),
 		"http://a.tiles.mapbox.com/v3/enf.y5c4ygb9,enf.ho20a3n1,enf.game1617/{z}/{x}/{y}.png", // tile source
 		smoothingSD,
@@ -76,6 +78,7 @@ func slideHandler(w http.ResponseWriter, r *http.Request) {
 	/**********************************
 	 * slider and options */
 	slider := slide.New(paths, tigerSurfacer)
+	slider.GeoReducer = reducers.NewTrim(reducer.New())
 	slider.ThresholdEpsilon = defaultThresholdEpsilon
 
 	if r.FormValue("gradient_scale") != "" {

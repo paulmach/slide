@@ -1,9 +1,9 @@
-package strava_heat
+package stravaheat
 
 import (
 	"github.com/paulmach/go.geo"
 	"github.com/paulmach/slide/utils"
-	"github.com/paulmach/slide/utils/smooth_surface"
+	"github.com/paulmach/slide/utils/smoothsurface"
 )
 
 // Resmooth takes the data pulled in from the tiles and applies a new smoothing
@@ -20,7 +20,7 @@ func (surfacer *StravaHeatSurface) Resmooth() error {
 
 // smooth sets up the LazySmoothSurface with a kernel.
 func (surfacer *StravaHeatSurface) smooth() error {
-	surfacer.smoothSurface = smooth_surface.New(surfacer.surface, surfacer.smoothKernel())
+	surfacer.smoothSurface = smoothsurface.New(surfacer.surface, surfacer.smoothKernel())
 	return nil
 }
 

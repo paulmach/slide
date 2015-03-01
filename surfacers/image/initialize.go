@@ -7,7 +7,7 @@ import (
 	"github.com/paulmach/go.geo"
 	"github.com/paulmach/slide"
 	"github.com/paulmach/slide/surfacers"
-	"github.com/paulmach/slide/utils/smooth_surface"
+	"github.com/paulmach/slide/utils/smoothsurface"
 )
 
 const (
@@ -21,7 +21,7 @@ const (
 // based on an image, such as a map scan. It works best with monochromatic images.
 type ImageSurface struct {
 	Surface       *geo.Surface
-	SmoothSurface *smooth_surface.LazySmoothSurface
+	SmoothSurface *smoothsurface.LazySmoothSurface
 
 	// SmoothingStdDev is used to do the smoothing of the surface.
 	// They are in meters and are scaled to match the mercator projection of the final surface

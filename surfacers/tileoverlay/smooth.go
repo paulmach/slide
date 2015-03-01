@@ -1,9 +1,9 @@
-package tile_overlay
+package tileoverlay
 
 import (
 	"github.com/paulmach/go.geo"
 	"github.com/paulmach/slide/utils"
-	"github.com/paulmach/slide/utils/smooth_surface"
+	"github.com/paulmach/slide/utils/smoothsurface"
 )
 
 // Resmooth takes the data pulled in from the tiles and applies a new smoothing
@@ -20,7 +20,7 @@ func (surfacer *TileOverlaySurface) Resmooth() error {
 
 // smooth sets up the LazySmoothSurface with a kernel.
 func (surfacer *TileOverlaySurface) smooth() error {
-	surfacer.SmoothSurface = smooth_surface.New(surfacer.Surface, surfacer.smoothKernel())
+	surfacer.SmoothSurface = smoothsurface.New(surfacer.Surface, surfacer.smoothKernel())
 	return nil
 }
 
