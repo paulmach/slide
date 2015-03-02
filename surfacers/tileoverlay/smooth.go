@@ -9,7 +9,7 @@ import (
 // Resmooth takes the data pulled in from the tiles and applies a new smoothing
 // to it based on a potentially updated `SmoothingStdDev`.
 // Basically it clears and resets the LazySmoothSurface.
-func (surfacer *TileOverlaySurface) Resmooth() error {
+func (surfacer *Surface) Resmooth() error {
 	if surfacer.SmoothSurface == nil {
 		return surfacer.smooth()
 	}
@@ -19,14 +19,14 @@ func (surfacer *TileOverlaySurface) Resmooth() error {
 }
 
 // smooth sets up the LazySmoothSurface with a kernel.
-func (surfacer *TileOverlaySurface) smooth() error {
+func (surfacer *Surface) smooth() error {
 	surfacer.SmoothSurface = smoothsurface.New(surfacer.Surface, surfacer.smoothKernel())
 	return nil
 }
 
 // smoothKernel creates the smoothing kernel that is based `SmoothingStdDev` (meters).
 // See the function utils.Kernel for more information.
-func (surfacer *TileOverlaySurface) smoothKernel() []float64 {
+func (surfacer *Surface) smoothKernel() []float64 {
 	return utils.Kernel(
 		surfacer.SmoothingStdDev,
 		geo.MercatorScaleFactor(surfacer.lnglatBound.Center().Lat()),

@@ -17,9 +17,9 @@ const (
 	suggestedMomentumScale = 0.0
 )
 
-// A ImageSurface reprents a builder and data for a Slide Surface
+// A Surface reprents a builder and data for a Slide Surface
 // based on an image, such as a map scan. It works best with monochromatic images.
-type ImageSurface struct {
+type Surface struct {
 	Surface       *geo.Surface
 	SmoothSurface *smoothsurface.LazySmoothSurface
 
@@ -38,15 +38,15 @@ type ImageSurface struct {
 	ColorValueFunc func(image, targetColor color.Color) float64
 }
 
-// New creates a new ImageSurface with the given options,
+// New creates a new Surface with the given options,
 // plus the others set to the defaults.
 func New(
 	lnglatBound *geo.Bound,
 	img image.Image,
 	targetColor color.Color,
 	smoothingStdDev float64,
-) *ImageSurface {
-	return &ImageSurface{
+) *Surface {
+	return &Surface{
 		SmoothingStdDev: smoothingStdDev,
 
 		image:       img,
@@ -58,7 +58,7 @@ func New(
 }
 
 // Build does the converting of the provided image into the surface.
-func (surfacer *ImageSurface) Build() error {
+func (surfacer *Surface) Build() error {
 
 	if surfacer.lnglatBound.Empty() {
 		return surfacers.ErrBoundEmpty
@@ -95,17 +95,17 @@ func (surfacer *ImageSurface) Build() error {
 }
 
 // GradientAt provides a pass through to surfacer.SmoothSurface.GradientAt()
-func (surfacer *ImageSurface) GradientAt(point *geo.Point) *geo.Point {
+func (surfacer *Surface) GradientAt(point *geo.Point) *geo.Point {
 	return surfacer.SmoothSurface.GradientAt(point)
 }
 
 // ValueAt provides a pass through to surfacer.Surface.ValueAt()
-func (surfacer *ImageSurface) ValueAt(point *geo.Point) float64 {
+func (surfacer *Surface) ValueAt(point *geo.Point) float64 {
 	return surfacer.Surface.ValueAt(point)
 }
 
 // SuggestedOptions returns the defaults the surfacer should use for some parameters.
-func (surfacer *ImageSurface) SuggestedOptions() *slide.SuggestedOptions {
+func (surfacer *Surface) SuggestedOptions() *slide.SuggestedOptions {
 	return &slide.SuggestedOptions{
 		GradientScale: suggestedGradientScale,
 		DistanceScale: suggestedDistanceScale,

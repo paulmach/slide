@@ -11,7 +11,7 @@ import _ "image/png" // to support tiles in these formats automatically
 import _ "image/jpeg"
 import _ "image/gif"
 
-func (surfacer *TileOverlaySurface) downloadTiles() error {
+func (surfacer *Surface) downloadTiles() error {
 	// for the tiles, 0,0 is northwest. For the surface, 0,0 is south west
 	verticalFlipOffset := uint64(surfacer.Surface.Height - 1)
 

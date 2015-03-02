@@ -19,7 +19,7 @@ type tileData struct {
 
 // downloadTiles downloads the strava heat data and puts it in the correct locations in the surface.
 // It starts up surfacer.DownloadGoroutines goroutines to download the data in parallel.
-func (surfacer *StravaHeatSurface) downloadTiles() error {
+func (surfacer *Surface) downloadTiles() error {
 	// for the tiles, 0,0 is northwest. For the surface, 0,0 is south west
 	verticalFlipOffset := uint64(surfacer.surface.Height - 1)
 

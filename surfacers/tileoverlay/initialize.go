@@ -25,11 +25,11 @@ const (
 	suggestedMomentumScale = 0.7
 )
 
-// A TileOverlaySurface reprents a builder and data for a Slide Surface
+// A Surface reprents a builder and data for a Slide Surface
 // based on overlay tile image data. For example, the "New & Misaligned TIGER Roads" overlay
 // is a tileset for the iD editor where TIGER roads are yellow. This object can build a
 // slidable surface using the yellow roads as target data.
-type TileOverlaySurface struct {
+type Surface struct {
 	Surface       *geo.Surface
 	SmoothSurface *smoothsurface.LazySmoothSurface
 
@@ -58,15 +58,15 @@ type TileOverlaySurface struct {
 	level              uint64
 }
 
-// New creates a new TileOverlaySurface with the given options,
+// New creates a new Surface with the given options,
 // plus the others set to the defaults.
 func New(
 	lnglatBound *geo.Bound,
 	sourceURLTemplate string,
 	smoothingStdDev float64,
 	targetColor color.Color,
-) *TileOverlaySurface {
-	return &TileOverlaySurface{
+) *Surface {
+	return &Surface{
 		SourceURLTemplate: sourceURLTemplate,
 		SmoothingStdDev:   smoothingStdDev,
 
@@ -100,7 +100,7 @@ func ColorValue(image, targetColor color.Color) float64 {
 //  - figures out the proper zoom and tiles to download
 //  - downloads those tiles
 //  - smooths the surface, per the options
-func (surfacer *TileOverlaySurface) Build() error {
+func (surfacer *Surface) Build() error {
 	if surfacer.lnglatBound.Empty() {
 		return surfacers.ErrBoundEmpty
 	}
@@ -124,7 +124,7 @@ func (surfacer *TileOverlaySurface) Build() error {
 
 // initialize figures out the proper size of the surface and initializes it.
 // The next step should be to download the tiles and place them in the surface, see downloadTiles()
-func (surfacer *TileOverlaySurface) initialize() error {
+func (surfacer *Surface) initialize() error {
 	// padding is 5% of average height and width.
 	// in lat/lng space, but that shouldn't matter.
 	padding := (surfacer.lnglatBound.Width() + surfacer.lnglatBound.Height()) / 2.0 * 0.05
@@ -165,17 +165,17 @@ func (surfacer *TileOverlaySurface) initialize() error {
 }
 
 // GradientAt provides a pass through to surfacer.SmoothSurface.GradientAt()
-func (surfacer *TileOverlaySurface) GradientAt(point *geo.Point) *geo.Point {
+func (surfacer *Surface) GradientAt(point *geo.Point) *geo.Point {
 	return surfacer.SmoothSurface.GradientAt(point)
 }
 
 // ValueAt provides a pass through to surfacer.Surface.ValueAt()
-func (surfacer *TileOverlaySurface) ValueAt(point *geo.Point) float64 {
+func (surfacer *Surface) ValueAt(point *geo.Point) float64 {
 	return surfacer.Surface.ValueAt(point)
 }
 
 // SuggestedOptions returns the defaults slide should use for some parameters.
-func (surfacer *TileOverlaySurface) SuggestedOptions() *slide.SuggestedOptions {
+func (surfacer *Surface) SuggestedOptions() *slide.SuggestedOptions {
 	return &slide.SuggestedOptions{
 		GradientScale:       suggestedGradientScale,
 		DistanceScale:       suggestedDistanceScale,

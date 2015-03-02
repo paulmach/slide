@@ -9,7 +9,7 @@ import (
 )
 
 // defaults for newly created StravaHeatSurfaces.
-// See StravaHeatSurface for more information about these parameters.
+// See Surface for more information about these parameters.
 const (
 	DefaultMaxSurfaceTileDim  = 7
 	DefaultDownloadGoroutines = 4
@@ -23,9 +23,9 @@ const (
 	suggestedMomentumScale = 0.7
 )
 
-// A StravaHeatSurface represents a builder and data for a Slide Surface
+// A Surface represents a builder and data for a Slide Surface
 // based on Strava heatmap data.
-type StravaHeatSurface struct {
+type Surface struct {
 	surface       *geo.Surface
 	smoothSurface *smoothsurface.LazySmoothSurface
 
@@ -48,14 +48,14 @@ type StravaHeatSurface struct {
 	level              uint64
 }
 
-// New creates a new StravaHeatSurface with the given options,
+// New creates a new Surface with the given options,
 // plus the others set to the defaults.
 func New(
 	lnglatBound *geo.Bound,
 	sourceURLTemplate string,
 	smoothingStdDev float64,
-) *StravaHeatSurface {
-	return &StravaHeatSurface{
+) *Surface {
+	return &Surface{
 		SourceURLTemplate: sourceURLTemplate,
 		SmoothingStdDev:   smoothingStdDev,
 
@@ -71,7 +71,7 @@ func New(
 //  - figures out the proper zoom and tiles to download
 //  - downloads those tiles
 //  - smooths the surface, per the options
-func (surfacer *StravaHeatSurface) Build() error {
+func (surfacer *Surface) Build() error {
 	if surfacer.lnglatBound.Empty() {
 		return surfacers.ErrBoundEmpty
 	}
@@ -95,7 +95,7 @@ func (surfacer *StravaHeatSurface) Build() error {
 
 // initialize figures out the proper size of the surface and initializes it.
 // The next step should be to download the tiles and place them in the surface, see downloadTiles()
-func (surfacer *StravaHeatSurface) initialize() error {
+func (surfacer *Surface) initialize() error {
 	// padding is 5% of average height and width.
 	// in lat/lng space, but that shouldn't matter.
 	padding := (surfacer.lnglatBound.Width() + surfacer.lnglatBound.Height()) / 2.0 * 0.05
@@ -136,17 +136,17 @@ func (surfacer *StravaHeatSurface) initialize() error {
 }
 
 // GradientAt provides a pass through to surfacer.smoothSurface.GradientAt()
-func (surfacer *StravaHeatSurface) GradientAt(point *geo.Point) *geo.Point {
+func (surfacer *Surface) GradientAt(point *geo.Point) *geo.Point {
 	return surfacer.smoothSurface.GradientAt(point)
 }
 
 // ValueAt provides a pass through to surfacer.surface.ValueAt()
-func (surfacer *StravaHeatSurface) ValueAt(point *geo.Point) float64 {
+func (surfacer *Surface) ValueAt(point *geo.Point) float64 {
 	return surfacer.surface.ValueAt(point)
 }
 
 // SuggestedOptions returns the defaults slide should use for some parameters.
-func (surfacer *StravaHeatSurface) SuggestedOptions() *slide.SuggestedOptions {
+func (surfacer *Surface) SuggestedOptions() *slide.SuggestedOptions {
 	return &slide.SuggestedOptions{
 		GradientScale: suggestedGradientScale,
 		DistanceScale: suggestedDistanceScale,
