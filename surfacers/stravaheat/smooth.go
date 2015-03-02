@@ -10,17 +10,17 @@ import (
 // to it based on a potentially updated `SmoothingStdDev`.
 // Basically it clears and resets the LazySmoothSurface.
 func (surfacer *Surface) Resmooth() error {
-	if surfacer.smoothSurface == nil {
+	if surfacer.SmoothSurface == nil {
 		return surfacer.smooth()
 	}
 
-	surfacer.smoothSurface.SetKernel(surfacer.smoothKernel())
+	surfacer.SmoothSurface.SetKernel(surfacer.smoothKernel())
 	return nil
 }
 
 // smooth sets up the LazySmoothSurface with a kernel.
 func (surfacer *Surface) smooth() error {
-	surfacer.smoothSurface = smoothsurface.New(surfacer.surface, surfacer.smoothKernel())
+	surfacer.SmoothSurface = smoothsurface.New(surfacer.Surface, surfacer.smoothKernel())
 	return nil
 }
 

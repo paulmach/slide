@@ -21,7 +21,7 @@ type tileData struct {
 // It starts up surfacer.DownloadGoroutines goroutines to download the data in parallel.
 func (surfacer *Surface) downloadTiles() error {
 	// for the tiles, 0,0 is northwest. For the surface, 0,0 is south west
-	verticalFlipOffset := uint64(surfacer.surface.Height - 1)
+	verticalFlipOffset := uint64(surfacer.Surface.Height - 1)
 
 	var fetchErr error
 	var wait sync.WaitGroup
@@ -63,7 +63,7 @@ func (surfacer *Surface) downloadTiles() error {
 						for l = 0; l < 256; l++ {
 							// while this does a matrix transpose. I did not get any speedup when
 							// trying to mess with this.
-							surfacer.surface.Grid[xStart+l][offset] = data.Data[k*256+l]
+							surfacer.Surface.Grid[xStart+l][offset] = data.Data[k*256+l]
 						}
 					}
 				} else {

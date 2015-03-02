@@ -26,8 +26,8 @@ const (
 // A Surface represents a builder and data for a Slide Surface
 // based on Strava heatmap data.
 type Surface struct {
-	surface       *geo.Surface
-	smoothSurface *smoothsurface.LazySmoothSurface
+	Surface       *geo.Surface
+	SmoothSurface *smoothsurface.LazySmoothSurface
 
 	// required options
 	SourceURLTemplate string // should be of the form http://host.com/{z}/{x}/{y}.png
@@ -123,7 +123,7 @@ func (surfacer *Surface) initialize() error {
 		return surfacers.ErrBoundEmpty
 	}
 
-	surfacer.surface = geo.NewSurface(mercatorBound, int((xTileMax-xTileMin+1)*256), int((yTileMax-yTileMin+1)*256))
+	surfacer.Surface = geo.NewSurface(mercatorBound, int((xTileMax-xTileMin+1)*256), int((yTileMax-yTileMin+1)*256))
 
 	// these values will be used by the downloader
 	surfacer.xTileMin = xTileMin
@@ -137,12 +137,12 @@ func (surfacer *Surface) initialize() error {
 
 // GradientAt provides a pass through to surfacer.smoothSurface.GradientAt()
 func (surfacer *Surface) GradientAt(point *geo.Point) *geo.Point {
-	return surfacer.smoothSurface.GradientAt(point)
+	return surfacer.SmoothSurface.GradientAt(point)
 }
 
 // ValueAt provides a pass through to surfacer.surface.ValueAt()
 func (surfacer *Surface) ValueAt(point *geo.Point) float64 {
-	return surfacer.surface.ValueAt(point)
+	return surfacer.Surface.ValueAt(point)
 }
 
 // SuggestedOptions returns the defaults slide should use for some parameters.
