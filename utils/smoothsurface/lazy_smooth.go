@@ -13,7 +13,7 @@ import (
 // Cache hit rate for a 100 iteration sample was 50% for the grid value and 99+% for the
 // Intermediate vertical smoothing values.
 type LazySmoothSurface struct {
-	Surface      *geo.Surface
+	*geo.Surface
 	kernel       []float64
 	gridCache    []float64
 	midGridCache []float64
