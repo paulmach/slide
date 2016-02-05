@@ -16,10 +16,6 @@ Slide supports the concept of [surfacers](surfacers) that can be based on any da
 	Uses the [Strava Global Heatmap](http://labs.strava.com/heatmap/)
 	to speed map tracing.
 
-* [TIGER map data](http://slide.paulmach.com/)<br />
-	Uses the [Mapbox TIGER tile layer](https://www.mapbox.com/blog/openstreetmap-tiger/) 
-	created by [Eric Fischer](https://github.com/ericfischer).
-
 Background
 ----------
 
