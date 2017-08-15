@@ -27,7 +27,7 @@ creating a raster like density distribution of GPS data. For more information ta
 * [Strava Slide Overview](http://labs.strava.com/slide)
 * [Interactive Demo](http://labs.strava.com/slide/demo.html)
 * [OSM iD Editor Integration](http://strava.github.io/iD/#background=Bing&map=16.97/-122.54464/38.05472)
-* Slide [presented](http://stateofthemap.us/session/slide/) at State of the Map US 2014.
+* Slide presented at State of the Map US 2014 [slides](http://labs.strava.com/slide/slide-SOTM-2014.pdf) | [video](https://vimeo.com/91878015).
 
 <img src="http://i.imgur.com/rbi2kDz.gif" width="728" height="330" alt="Slide Animation" style="float: right" />
 <br />
